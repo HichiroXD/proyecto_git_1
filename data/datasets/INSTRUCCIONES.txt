@@ -1,0 +1,13 @@
+Colocar aquí (en la carpeta llamada datasets) los archivos CSV descargados desde Kaggle
+
+Dataset 1 - terencicp/steam-games-december-2023
+	- games.csv
+	- t-games-categories.csv
+	- t-games-tags.csv
+	Fuente: https://www.kaggle.com/datasets/terencicp/steam-games-december-2023
+
+Dataset 2 - fronkongames/steam-games-dataset
+	- games_fronkon.csv (nombre sujeto a cambios)
+	Fuente: https://www.kaggle.com/datasets/fronkongames/steam-games-dataset
+
+Las .CSV estaran excluidos por el .gitignore.
