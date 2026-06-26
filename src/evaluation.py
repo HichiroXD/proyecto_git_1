@@ -1,0 +1,56 @@
+"""
+evaluation.py
+-------------
+Métricas y visualizaciones para evaluar modelos de clasificación multiclase.
+
+Incluye:
+  - print_report(): classification report completo por clase.
+  - plot_confusion_matrix(): matriz de confusión normalizada.
+  - plot_roc_curves(): curvas ROC one-vs-rest por clase.
+  - plot_feature_importance(): top N features del modelo final.
+  - compare_models(): tabla comparativa de métricas entre modelos.
+"""
+
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.pipeline import Pipeline
+from sklearn.metrics import (
+    classification_report,
+    confusion_matrix,
+    ConfusionMatrixDisplay,
+    roc_auc_score,
+)
+from src.config import CLASS_LABELS
+
+
+def print_report(pipeline: Pipeline, X_test, y_test) -> None:
+    """Imprime el classification report completo con métricas por clase."""
+    raise NotImplementedError("Implementar en feature/modeling")
+
+
+def plot_confusion_matrix(pipeline: Pipeline, X_test, y_test) -> None:
+    """Genera y muestra la matriz de confusión normalizada."""
+    raise NotImplementedError("Implementar en feature/modeling")
+
+
+def plot_roc_curves(pipeline: Pipeline, X_test, y_test) -> None:
+    """Curvas ROC one-vs-rest para cada clase del modelo multiclase."""
+    raise NotImplementedError("Implementar en feature/modeling")
+
+
+def plot_feature_importance(pipeline: Pipeline, top_n: int = 30) -> None:
+    """Gráfico de barras con las top_n features del modelo final."""
+    raise NotImplementedError("Implementar en feature/modeling")
+
+
+def compare_models(results: dict) -> pd.DataFrame:
+    """
+    Recibe un dict {nombre_modelo: métricas} y devuelve una tabla comparativa.
+    Ejemplo de entrada:
+        {
+            "Decision Tree": {"accuracy": 0.61, "macro_f1": 0.58, "auc_ovr": 0.79},
+            "Random Forest": {"accuracy": 0.65, "macro_f1": 0.62, "auc_ovr": 0.83},
+        }
+    """
+    raise NotImplementedError("Implementar en feature/modeling")
