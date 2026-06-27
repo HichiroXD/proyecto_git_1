@@ -61,14 +61,14 @@ mi_proyecto_git/
 
 ```bash
 # 1. Clonar el repositorio
-git clone https://github.com/<usuario>/steam-success-predictor.git
-cd steam-success-predictor
+git clone https://github.com/<usuario>/proyecto_git_1.git
+cd proyecto_git_1
 
 # 2. Crear el entorno virtual
 conda env create -f environment.yml
-conda activate steam-success
+conda activate proyecto_git_1
 
-# 3. Descargar los datasets desde Kaggle y colocarlos en data/raw/
+# 3. Descargar los datasets desde Kaggle y colocarlos en data/datasets/
 #    (ver data/raw/INSTRUCCIONES.txt)
 
 # 4. Ejecutar el notebook
