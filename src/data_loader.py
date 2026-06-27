@@ -21,8 +21,22 @@ from src.config import (
 
 
 def load_terencicp() -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
-    """Carga los tres archivos del dataset terencicp."""
-    raise NotImplementedError("Implementar en feature/data-pipeline")
+    """
+    Carga los tres archivos del dataset terencicp.
+
+    Returns
+    -------
+    df_games : pd.DataFrame
+        Tabla principal con atributos base de cada juego.
+    df_categories : pd.DataFrame
+        Tabla en formato largo (app_id, categories).
+    df_tags : pd.DataFrame
+        Tabla en formato largo (app_id, tags, tag_frequencies).
+    """
+    df_games = pd.read_csv(FILE_TERENCICP_GAMES)
+    df_categories = pd.read_csv(FILE_TERENCICP_CATEGORIES)
+    df_tags = pd.read_csv(FILE_TERENCICP_TAGS)
+    return df_games, df_categories, df_tags
 
 
 def load_fronkongames() -> pd.DataFrame:
