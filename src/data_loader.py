@@ -19,6 +19,22 @@ from src.config import (
     TAG_FREQ_THRESHOLD,
 )
 
+# Columnas del dataset fronkongames que aportan información pre-lanzamiento
+# no disponible en el dataset terencicp
+FRONKON_COLS_MERGE = [
+    "AppID",
+    "Developers",
+    "Publishers",
+    "Genres",
+    "Windows",
+    "Mac",
+    "Linux",
+    "Supported languages",
+    "Achievements",
+    "Metacritic score",
+    "Required age",
+]
+
 
 def load_terencicp() -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     """
@@ -40,9 +56,37 @@ def load_terencicp() -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
 
 
 def load_fronkongames() -> pd.DataFrame:
-    """Carga el dataset de fronkongames y selecciona columnas relevantes."""
-    raise NotImplementedError("Implementar en feature/data-pipeline")
+    """
+    Carga el dataset de fronkongames y selecciona columnas relevantes.
 
+    Nota técnica: el CSV exportado por fronkongames incluye el índice de pandas
+    como primera columna sin nombre, desplazando todas las columnas una posición
+    a la derecha. Se corrige con index_col=0 y renombrando las columnas afectadas.
+
+    Returns
+    -------
+    pd.DataFrame con columnas: AppID + FRONKON_COLS_MERGE
+    """
+    df = pd.read_csv(FILE_FRONKONGAMES, index_col=0)
+
+    # Corregir el desplazamiento de columnas causado por el índice exportado:
+    # la columna 'AppID' dentro del df contiene en realidad los nombres de juego,
+    # ya que el AppID numérico real quedó absorbido como índice.
+    df = df.rename(columns={
+        "AppID": "Name",
+        "Name": "Release date",
+        "Release date": "Estimated owners",
+    })
+    df.index.name = "AppID"
+
+    # Limpiar filas con AppID no numérico o infinito
+    import numpy as np
+    numeric_index = pd.to_numeric(df.index, errors="coerce")
+    df = df[numeric_index.notna() & ~np.isinf(numeric_index)]
+    df.index = df.index.astype(int)
+    df = df.reset_index().copy()
+
+    return df[FRONKON_COLS_MERGE]
 
 def merge_datasets(
     df_games: pd.DataFrame,
