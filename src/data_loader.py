@@ -133,16 +133,81 @@ def merge_datasets(
 ) -> pd.DataFrame:
     """
     Une los cuatro dataframes en un único dataset enriquecido.
-    Estrategia:
-      1. Pivot de categorías (formato largo → columnas binarias).
-      2. Filtro y pivot de tags por tag_frequencies.
-      3. Merge externo con fronkongames por AppID (how='left').
-    """
-    raise NotImplementedError("Implementar en feature/data-pipeline")
 
+    Estrategia:
+      1. Pivot de categorías (formato largo → columnas binarias cat_*).
+      2. Filtro y pivot de tags por tag_frequencies (columnas binarias tag_*).
+      3. Join de categorías y tags sobre games por app_id (left join).
+      4. Merge externo con fronkongames por AppID (left join).
+
+    El uso de how='left' garantiza que no se pierda ningún juego del dataset
+    base aunque no tenga match en las otras tablas.
+
+    Returns
+    -------
+    pd.DataFrame con todas las columnas integradas.
+    """
+    categories_pivot = _pivot_categories(df_categories)
+    tags_pivot = _pivot_tags(df_tags)
+
+    df = (
+        df_games.set_index("app_id")
+        .merge(categories_pivot, left_index=True, right_index=True, how="left")
+        .merge(tags_pivot, left_index=True, right_index=True, how="left")
+    )
+
+    bin_cols = [c for c in df.columns if c.startswith("cat_") or c.startswith("tag_")]
+    df[bin_cols] = df[bin_cols].fillna(0).astype(int)
+    df = df.reset_index().copy()
+
+    df = df.merge(
+        df_fronkon,
+        left_on="app_id",
+        right_on="AppID",
+        how="left",
+    ).drop(columns=["AppID"])
+
+    return df
 
 def load_all() -> pd.DataFrame:
-    """Punto de entrada principal: carga y unifica todos los datasets."""
+    """
+    Punto de entrada principal: carga y unifica todos los datasets.
+
+    Returns
+    -------
+    pd.DataFrame con ~61.000 juegos y todas las columnas integradas.
+    """
     df_games, df_categories, df_tags = load_terencicp()
     df_fronkon = load_fronkongames()
     return merge_datasets(df_games, df_categories, df_tags, df_fronkon)
+
+
+def get_merge_stats(df: pd.DataFrame) -> dict:
+    """
+    Retorna estadísticas del merge para reportar en el notebook.
+
+    Returns
+    -------
+    dict con: total_games, matched_games, match_rate, null_rates_by_col
+    """
+    fronkon_cols = [c for c in FRONKON_COLS_MERGE if c != "AppID" and c in df.columns]
+    null_rates = {col: df[col].isna().mean() for col in fronkon_cols}
+    matched = df[fronkon_cols[0]].notna().sum() if fronkon_cols else 0
+
+    return {
+        "total_games": len(df),
+        "matched_games": matched,
+        "match_rate": matched / len(df) if len(df) > 0 else 0,
+        "null_rates_by_col": null_rates,
+    }
+
+# ---------------------------------------------------------------------------
+# Ejecución directa para verificación rápida del pipeline de carga
+# Uso: python -m src.data_loader
+# ---------------------------------------------------------------------------
+if __name__ == "__main__":
+    print("Cargando datasets...")
+    df = load_all()
+    stats = get_merge_stats(df)
+    print(f"Dataset integrado: {df.shape[0]:,} juegos, {df.shape[1]} columnas")
+    print(f"Match con fronkongames: {stats['matched_games']:,} / {stats['total_games']:,} ({stats['match_rate']:.1%})")
