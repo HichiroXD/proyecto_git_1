@@ -88,6 +88,43 @@ def load_fronkongames() -> pd.DataFrame:
 
     return df[FRONKON_COLS_MERGE]
 
+def _pivot_categories(df_categories: pd.DataFrame) -> pd.DataFrame:
+    """
+    Convierte la tabla de categorías de formato largo a columnas binarias.
+    Prefija cada columna con 'cat_' para distinguirlas de otras features.
+    """
+    pivot = (
+        df_categories.groupby(["app_id", "categories"])
+        .size()
+        .unstack(fill_value=0)
+        .clip(upper=1)
+    )
+    pivot.columns = [
+        "cat_" + c.lower().replace(" ", "_").replace("-", "_")
+        for c in pivot.columns
+    ]
+    return pivot
+
+def _pivot_tags(df_tags: pd.DataFrame) -> pd.DataFrame:
+    """
+    Filtra tags por tag_frequencies y convierte a columnas binarias.
+    Solo se conservan asociaciones tag-juego con al menos TAG_FREQ_THRESHOLD votos,
+    eliminando tags asignados por muy pocos usuarios (probable ruido).
+    Prefija cada columna con 'tag_'.
+    """
+    df_filtered = df_tags[df_tags["tag_frequencies"] >= TAG_FREQ_THRESHOLD]
+    pivot = (
+        df_filtered.groupby(["app_id", "tags"])
+        .size()
+        .unstack(fill_value=0)
+        .clip(upper=1)
+    )
+    pivot.columns = [
+        "tag_" + t.lower().replace(" ", "_").replace("-", "_")
+        for t in pivot.columns
+    ]
+    return pivot
+
 def merge_datasets(
     df_games: pd.DataFrame,
     df_categories: pd.DataFrame,
