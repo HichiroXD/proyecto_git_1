@@ -49,8 +49,32 @@ def build_target(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def filter_min_reviews(df: pd.DataFrame) -> pd.DataFrame:
-    """Elimina juegos con menos de MIN_REVIEWS reseñas totales."""
-    raise NotImplementedError("Implementar en feature/data-pipeline")
+    """
+    Elimina juegos con menos de MIN_REVIEWS reseñas totales.
+
+    Justificación: juegos con muy pocas reseñas producen un positive_ratio
+    estadísticamente poco confiable (valores extremos por azar). Por ejemplo,
+    un juego con 4 reseñas positivas y 1 negativa ya alcanza el 80% exacto,
+    sin que eso refleje necesariamente una recepción genuinamente positiva.
+    Este filtro mejora la calidad de la variable objetivo.
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        Dataset integrado con columnas 'positive' y 'negative'.
+
+    Returns
+    -------
+    pd.DataFrame filtrado, sin juegos de bajo volumen de reseñas.
+    """
+    df = df.copy()
+    df["total_reviews"] = df["positive"] + df["negative"]
+    n_before = len(df)
+    df = df[df["total_reviews"] >= MIN_REVIEWS].copy()
+    n_after = len(df)
+    print(f"filter_min_reviews: {n_before:,} → {n_after:,} juegos "
+          f"(eliminados: {n_before - n_after:,}, {(n_before-n_after)/n_before:.1%})")
+    return df
 
 
 def extract_temporal_features(df: pd.DataFrame) -> pd.DataFrame:
