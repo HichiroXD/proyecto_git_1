@@ -38,14 +38,52 @@ def build_target(df: pd.DataFrame) -> pd.DataFrame:
     Calcula positive_ratio y construye la variable objetivo multiclase
     siguiendo las categorías oficiales de Steam.
 
-    Clases (de menor a mayor):
-        0 - Negative          (ratio < 40%)
-        1 - Mixed             (40% ≤ ratio < 70%)
-        2 - Mostly Positive   (70% ≤ ratio < 80%)
-        3 - Very Positive     (≥ 80% y ≥ 50 reseñas)
-        4 - Overwhelmingly Positive (≥ 95% y ≥ 500 reseñas)
+    Clases (de menor a mayor éxito):
+        0 - Negative            (ratio < 40%)
+        1 - Mixed               (40% ≤ ratio < 70%)
+        2 - Mostly Positive     (70% ≤ ratio < 80%)
+        3 - Very Positive       (≥ 80% y ≥ MIN_REVIEWS_VERY reseñas)
+        4 - Overwhelmingly Positive (≥ 95% y ≥ MIN_REVIEWS_OVERWHELM reseñas)
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        Dataset con columnas 'positive' y 'negative' (tras filter_min_reviews).
+
+    Returns
+    -------
+    pd.DataFrame con columnas adicionales: 'positive_ratio' y 'success_level'.
     """
-    raise NotImplementedError("Implementar en feature/data-pipeline")
+    df = df.copy()
+    df["positive_ratio"] = df["positive"] / (df["positive"] + df["negative"])
+
+    def classify(row: pd.Series) -> str:
+        ratio = row["positive_ratio"]
+        total = row["total_reviews"]
+
+        if ratio >= THRESH_OVERWHELM and total >= MIN_REVIEWS_OVERWHELM:
+            return "Overwhelmingly Positive"
+        elif ratio >= THRESH_VERY_POSITIVE and total >= MIN_REVIEWS_VERY:
+            return "Very Positive"
+        elif ratio >= THRESH_MOSTLY:
+            return "Mostly Positive"
+        elif ratio >= THRESH_MIXED_LOW:
+            return "Mixed"
+        else:
+            return "Negative"
+
+    df["success_level"] = df.apply(classify, axis=1)
+
+    # Convertir a categórica ordenada para que los modelos respeten el orden
+    df["success_level"] = pd.Categorical(
+        df["success_level"],
+        categories=CLASS_LABELS,
+        ordered=True,
+    )
+
+    print("build_target: distribución de clases:")
+    print(df["success_level"].value_counts().sort_index())
+    return df
 
 
 def filter_min_reviews(df: pd.DataFrame) -> pd.DataFrame:
