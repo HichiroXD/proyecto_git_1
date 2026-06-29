@@ -116,8 +116,34 @@ def filter_min_reviews(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def extract_temporal_features(df: pd.DataFrame) -> pd.DataFrame:
-    """Extrae release_year desde la columna de fecha de lanzamiento."""
-    raise NotImplementedError("Implementar en feature/data-pipeline")
+    """
+    Extrae el año de lanzamiento desde la columna de fecha.
+
+    El año de lanzamiento es una feature pre-lanzamiento válida (el desarrollador
+    decide cuándo lanzar el juego). Sin embargo, presenta una correlación
+    parcial con la variable objetivo que refleja un sesgo de captura del dataset
+    (los juegos más recientes tienen menos reseñas acumuladas). Esta limitación
+    se documenta en el README.
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        Dataset con columna 'release_date' en formato texto (ej: 'Oct 12, 2017').
+
+    Returns
+    -------
+    pd.DataFrame con columna adicional 'release_year' (int).
+    """
+    df = df.copy()
+    df["release_year"] = pd.to_datetime(
+        df["release_date"], errors="coerce"
+    ).dt.year.astype("Int64")
+
+    null_years = df["release_year"].isna().sum()
+    if null_years > 0:
+        print(f"extract_temporal_features: {null_years} juegos sin año detectado (se excluirán en prepare_dataset)")
+
+    return df
 
 
 def encode_features(df: pd.DataFrame) -> tuple[pd.DataFrame, list[str]]:
