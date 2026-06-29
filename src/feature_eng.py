@@ -174,6 +174,73 @@ def encode_categories_tags(df: pd.DataFrame) -> tuple[pd.DataFrame, list[str]]:
     return df, cat_tag_features
 
 
+def encode_fronkon_features(df: pd.DataFrame) -> tuple[pd.DataFrame, list[str]]:
+    """
+    Codifica columnas nuevas provenientes del merge con fronkongames:
+      - Genres      : texto con géneros separados por coma → One-Hot Encoding
+      - Developers  : nombre del desarrollador → One-Hot Encoding (top frecuentes)
+      - Windows/Mac/Linux : booleanos → convertir a int (0/1)
+      - Required age: numérica → usar directamente
+      - Achievements: numérica → usar directamente
+      - Metacritic score: numérica → usar directamente (muchos NaN esperados)
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        Dataset con columnas de fronkongames ya mergeadas.
+
+    Returns
+    -------
+    df : pd.DataFrame con nuevas columnas codificadas
+    fronkon_features : list[str] — nombres de las nuevas features generadas
+    """
+    df = df.copy()
+    fronkon_features = []
+
+    # Plataformas: booleanos → int
+    for col in ["Windows", "Mac", "Linux"]:
+        if col in df.columns:
+            new_col = f"platform_{col.lower()}"
+            df[new_col] = df[col].fillna(False).astype(int)
+            fronkon_features.append(new_col)
+
+    # Variables numéricas directas
+    for col, new_col in [
+        ("Required age", "required_age"),
+        ("Achievements", "achievements"),
+        ("Metacritic score", "metacritic_score"),
+    ]:
+        if col in df.columns:
+            df[new_col] = pd.to_numeric(df[col], errors="coerce").fillna(0)
+            fronkon_features.append(new_col)
+
+    # Genres: texto separado por coma → One-Hot Encoding
+    if "Genres" in df.columns:
+        genres_dummies = (
+            df["Genres"]
+            .fillna("")
+            .str.get_dummies(sep=",")
+        )
+        genres_dummies.columns = [
+            "genre_" + g.strip().lower().replace(" ", "_")
+            for g in genres_dummies.columns
+        ]
+        df = pd.concat([df, genres_dummies], axis=1)
+        fronkon_features.extend(genres_dummies.columns.tolist())
+
+    # Developers: One-Hot Encoding solo para los top 50 más frecuentes
+    # (evita explosión de dimensionalidad con miles de estudios distintos)
+    if "Developers" in df.columns:
+        top_devs = df["Developers"].value_counts().head(50).index
+        for dev in top_devs:
+            col_name = "dev_" + dev.lower().replace(" ", "_").replace("-", "_")[:30]
+            df[col_name] = (df["Developers"] == dev).astype(int)
+            fronkon_features.append(col_name)
+
+    print(f"encode_fronkon_features: {len(fronkon_features)} features nuevas generadas")
+    return df, fronkon_features
+
+
 def prepare_dataset(df: pd.DataFrame) -> tuple[pd.DataFrame, list[str], str]:
     """
     Pipeline completo de feature engineering.
