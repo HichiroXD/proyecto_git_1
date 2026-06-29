@@ -146,12 +146,32 @@ def extract_temporal_features(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-def encode_features(df: pd.DataFrame) -> tuple[pd.DataFrame, list[str]]:
+def encode_categories_tags(df: pd.DataFrame) -> tuple[pd.DataFrame, list[str]]:
     """
-    Aplica One-Hot Encoding a géneros, categorías y tags.
-    Retorna el dataframe transformado y la lista de features resultantes.
+    Selecciona y retorna las columnas binarias cat_* y tag_* generadas
+    por data_loader._pivot_categories() y data_loader._pivot_tags().
+
+    Estas columnas ya están en formato binario (0/1) desde la carga,
+    por lo que no requieren One-Hot Encoding adicional.
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        Dataset integrado con columnas cat_* y tag_*.
+
+    Returns
+    -------
+    df : pd.DataFrame (sin modificar)
+    cat_tag_features : list[str] — nombres de columnas cat_* y tag_*
     """
-    raise NotImplementedError("Implementar en feature/data-pipeline")
+    cat_tag_features = [
+        c for c in df.columns
+        if c.startswith("cat_") or c.startswith("tag_")
+    ]
+    print(f"encode_categories_tags: {len(cat_tag_features)} features "
+          f"({sum(c.startswith('cat_') for c in cat_tag_features)} cat, "
+          f"{sum(c.startswith('tag_') for c in cat_tag_features)} tag)")
+    return df, cat_tag_features
 
 
 def prepare_dataset(df: pd.DataFrame) -> tuple[pd.DataFrame, list[str], str]:
