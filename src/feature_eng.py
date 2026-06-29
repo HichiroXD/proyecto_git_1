@@ -243,7 +243,52 @@ def encode_fronkon_features(df: pd.DataFrame) -> tuple[pd.DataFrame, list[str]]:
 
 def prepare_dataset(df: pd.DataFrame) -> tuple[pd.DataFrame, list[str], str]:
     """
-    Pipeline completo de feature engineering.
-    Retorna (df_model, feature_list, target_col).
+    Pipeline completo de feature engineering. Orquesta todos los pasos
+    anteriores en el orden correcto y retorna el dataset listo para modelar.
+
+    Pasos:
+      1. Filtro de reseñas mínimas
+      2. Construcción de la variable objetivo multiclase
+      3. Extracción de features temporales (release_year)
+      4. Codificación de categorías y tags (cat_*, tag_*)
+      5. Codificación de features de fronkongames (géneros, plataformas, etc.)
+      6. Exclusión de columnas post-lanzamiento del feature set
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        Dataset integrado proveniente de data_loader.load_all().
+
+    Returns
+    -------
+    df_model : pd.DataFrame — dataset listo para train/test split
+    features  : list[str]  — lista de columnas a usar como features
+    target    : str        — nombre de la columna objetivo ('success_level')
     """
-    raise NotImplementedError("Implementar en feature/data-pipeline")
+    TARGET = "success_level"
+
+    # Paso 1-3: filtros y target
+    df = filter_min_reviews(df)
+    df = build_target(df)
+    df = extract_temporal_features(df)
+
+    # Paso 4-5: encoding
+    df, cat_tag_feats = encode_categories_tags(df)
+    df, fronkon_feats = encode_fronkon_features(df)
+
+    # Features numéricas base (pre-lanzamiento)
+    base_features = ["price", "release_year"]
+
+    # Feature set completo
+    features = base_features + cat_tag_feats + fronkon_feats
+
+    # Excluir columnas post-lanzamiento del dataframe de modelado
+    cols_to_drop = [c for c in POST_LAUNCH_COLS if c in df.columns]
+    df_model = df[features + [TARGET]].dropna(subset=["release_year"])
+
+    print(f"\nprepare_dataset completado:")
+    print(f"  Filas: {len(df_model):,}")
+    print(f"  Features totales: {len(features)}")
+    print(f"  Target: '{TARGET}'")
+
+    return df_model, features, TARGET
