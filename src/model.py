@@ -85,13 +85,54 @@ class CumulativeImportanceSelector(BaseEstimator, TransformerMixin):
 
 
 def build_pipeline_dt() -> Pipeline:
-    """Pipeline: CumulativeImportanceSelector + DecisionTreeClassifier."""
-    raise NotImplementedError("Implementar en feature/modeling")
+    """
+    Construye el Pipeline de Decision Tree multiclase.
+
+    El Pipeline encadena:
+      1. CumulativeImportanceSelector — selección de features sin data leakage
+      2. DecisionTreeClassifier       — clasificador multiclase
+
+    Los hiperparámetros de control de overfitting (max_depth, min_samples_*)
+    se definen en config.py para centralizar su gestión.
+
+    Returns
+    -------
+    Pipeline sklearn listo para .fit() y .predict()
+    """
+    return Pipeline([
+        ("selector", CumulativeImportanceSelector(cum_threshold=CUM_IMP_THRESHOLD)),
+        ("clf", DecisionTreeClassifier(
+            max_depth=RF_MAX_DEPTH,
+            min_samples_split=RF_MIN_SAMPLES_SPLIT,
+            min_samples_leaf=RF_MIN_SAMPLES_LEAF,
+            random_state=RANDOM_STATE,
+        )),
+    ])
 
 
 def build_pipeline_rf() -> Pipeline:
-    """Pipeline: CumulativeImportanceSelector + RandomForestClassifier."""
-    raise NotImplementedError("Implementar en feature/modeling")
+    """
+    Construye el Pipeline de Random Forest multiclase.
+
+    El Pipeline encadena:
+      1. CumulativeImportanceSelector — selección de features sin data leakage
+      2. RandomForestClassifier       — ensamble de árboles multiclase
+
+    Returns
+    -------
+    Pipeline sklearn listo para .fit() y .predict()
+    """
+    return Pipeline([
+        ("selector", CumulativeImportanceSelector(cum_threshold=CUM_IMP_THRESHOLD)),
+        ("clf", RandomForestClassifier(
+            n_estimators=RF_N_ESTIMATORS,
+            max_depth=RF_MAX_DEPTH,
+            min_samples_split=RF_MIN_SAMPLES_SPLIT,
+            min_samples_leaf=RF_MIN_SAMPLES_LEAF,
+            random_state=RANDOM_STATE,
+            n_jobs=-1,
+        )),
+    ])
 
 
 def split_data(
