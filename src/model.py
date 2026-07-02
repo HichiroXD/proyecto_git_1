@@ -223,10 +223,10 @@ if __name__ == "__main__":
     from src.feature_eng import prepare_dataset
 
     print("Cargando datos...")
-    df_raw = load_all()
+    df_datasets = load_all()
 
     print("Preparando features...")
-    df_model, features, target = prepare_dataset(df_raw)
+    df_model, features, target = prepare_dataset(df_datasets)
 
     print("Dividiendo datos...")
     X_train, X_test, y_train, y_test = split_data(df_model, features, target)

@@ -11,13 +11,13 @@ from pathlib import Path
 ROOT_DIR = Path(__file__).resolve().parent.parent
 
 # Rutas de datos
-DATA_RAW_DIR = ROOT_DIR / "data" / "raw"
+DATA_DATASETS_DIR = ROOT_DIR / "data" / "datasets"
 
 # Archivos de entrada
-FILE_TERENCICP_GAMES      = DATA_RAW_DIR / "games.csv"
-FILE_TERENCICP_CATEGORIES = DATA_RAW_DIR / "t-games-categories.csv"
-FILE_TERENCICP_TAGS       = DATA_RAW_DIR / "t-games-tags.csv"
-FILE_FRONKONGAMES         = DATA_RAW_DIR / "games_fronkon.csv"
+FILE_TERENCICP_GAMES      = DATA_DATASETS_DIR / "games_terencicp.csv"
+FILE_TERENCICP_CATEGORIES = DATA_DATASETS_DIR / "t-games-categories.csv"
+FILE_TERENCICP_TAGS       = DATA_DATASETS_DIR / "t-games-tags.csv"
+FILE_FRONKONGAMES         = DATA_DATASETS_DIR / "games_fronkon.csv"
 
 # Se revisaron las distribuciones reales del dataset y se ajustaron
 # los umbrales para reflejar mejor las categorías oficiales de Steam.
