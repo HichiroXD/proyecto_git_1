@@ -172,6 +172,73 @@ def split_data(
     return X_train, X_test, y_train, y_test
 
 
-def cross_validate_pipeline(pipeline: Pipeline, X_train, y_train) -> dict:
-    """Validación cruzada estratificada 5-fold. Retorna métricas resumidas."""
-    raise NotImplementedError("Implementar en feature/modeling")
+def cross_validate_pipeline(
+    pipeline: Pipeline, X_train, y_train, cv: int = 5
+) -> dict:
+    """
+    Validación cruzada estratificada sobre el conjunto de entrenamiento.
+
+    Usa macro-F1 como métrica principal por ser más robusta ante el
+    desbalance de clases que accuracy — especialmente relevante aquí
+    ya que 'Overwhelmingly Positive' tiene muchas menos muestras que
+    'Mostly Positive'.
+
+    Parameters
+    ----------
+    pipeline : Pipeline sklearn ya construido (sin entrenar)
+    X_train  : pd.DataFrame — features de entrenamiento
+    y_train  : pd.Series    — target de entrenamiento
+    cv       : int          — número de folds (default: 5)
+
+    Returns
+    -------
+    dict con: mean_f1, std_f1, scores (array por fold)
+    """
+    scores = cross_val_score(
+        pipeline, X_train, y_train,
+        cv=cv,
+        scoring="f1_macro",
+        n_jobs=1,
+    )
+
+    result = {
+        "mean_f1": scores.mean(),
+        "std_f1": scores.std(),
+        "scores": scores,
+    }
+
+    print(f"cross_validate_pipeline ({cv}-fold CV):")
+    print(f"  macro-F1: {result['mean_f1']:.3f} ± {result['std_f1']:.3f}")
+    print(f"  folds: {scores.round(3)}")
+
+    return result
+
+
+# ---------------------------------------------------------------------------
+# Ejecución directa para verificación rápida del pipeline de modelado
+# Uso: python -m src.model
+# ---------------------------------------------------------------------------
+if __name__ == "__main__":
+    from src.data_loader import load_all
+    from src.feature_eng import prepare_dataset
+
+    print("Cargando datos...")
+    df_raw = load_all()
+
+    print("Preparando features...")
+    df_model, features, target = prepare_dataset(df_raw)
+
+    print("Dividiendo datos...")
+    X_train, X_test, y_train, y_test = split_data(df_model, features, target)
+
+    print("\nEntrenando Decision Tree...")
+    pipeline_dt = build_pipeline_dt()
+    pipeline_dt.fit(X_train, y_train)
+    print(f"  Train acc: {pipeline_dt.score(X_train, y_train):.3f}")
+    print(f"  Test  acc: {pipeline_dt.score(X_test, y_test):.3f}")
+
+    print("\nEntrenando Random Forest...")
+    pipeline_rf = build_pipeline_rf()
+    pipeline_rf.fit(X_train, y_train)
+    print(f"  Train acc: {pipeline_rf.score(X_train, y_train):.3f}")
+    print(f"  Test  acc: {pipeline_rf.score(X_test, y_test):.3f}")
