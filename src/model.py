@@ -38,6 +38,17 @@ class CumulativeImportanceSelector(BaseEstimator, TransformerMixin):
 
     Al estar dentro de un Pipeline, se reajusta solo con los datos de
     entrenamiento de cada fold/split — sin fuga de datos hacia el test set.
+
+    Parameters
+    ----------
+    cum_threshold : float
+        Porcentaje de importancia acumulada mínima (default: 0.90).
+    n_estimators : int
+        Número de árboles del Random Forest interno.
+    max_depth : int
+        Profundidad máxima del Random Forest interno.
+    random_state : int
+        Semilla aleatoria para reproducibilidad.
     """
 
     def __init__(
@@ -53,10 +64,24 @@ class CumulativeImportanceSelector(BaseEstimator, TransformerMixin):
         self.random_state = random_state
 
     def fit(self, X, y):
-        raise NotImplementedError("Implementar en feature/modeling")
+        rf = RandomForestClassifier(
+            n_estimators=self.n_estimators,
+            max_depth=self.max_depth,
+            random_state=self.random_state,
+            n_jobs=-1,
+        )
+        rf.fit(X, y)
+        importances = pd.Series(
+            rf.feature_importances_, index=X.columns
+        ).sort_values(ascending=False)
+        cum = importances.cumsum()
+        n_selected = (cum <= self.cum_threshold).sum() + 1
+        self.selected_features_ = importances.head(n_selected).index.tolist()
+        self.importances_ = importances
+        return self
 
     def transform(self, X):
-        raise NotImplementedError("Implementar en feature/modeling")
+        return X[self.selected_features_]
 
 
 def build_pipeline_dt() -> Pipeline:
