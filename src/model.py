@@ -138,8 +138,38 @@ def build_pipeline_rf() -> Pipeline:
 def split_data(
     df: pd.DataFrame, features: list[str], target: str
 ) -> tuple:
-    """División estratificada 80/20 en train y test."""
-    raise NotImplementedError("Implementar en feature/modeling")
+    """
+    División estratificada 80/20 en conjuntos de entrenamiento y prueba.
+
+    Se usa stratify=y para preservar la proporción de cada clase en ambos
+    conjuntos — especialmente importante en clasificación multiclase donde
+    alguna clase puede tener pocas muestras (ej. Overwhelmingly Positive).
+
+    Parameters
+    ----------
+    df       : pd.DataFrame — dataset completo de modelado
+    features : list[str]   — columnas a usar como features
+    target   : str         — nombre de la columna objetivo
+
+    Returns
+    -------
+    X_train, X_test, y_train, y_test
+    """
+    X = df[features]
+    y = df[target]
+
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y,
+        test_size=TEST_SIZE,
+        random_state=RANDOM_STATE,
+        stratify=y,
+    )
+
+    print(f"split_data: train={len(X_train):,} | test={len(X_test):,}")
+    print("Distribución en train:")
+    print(y_train.value_counts().sort_index())
+
+    return X_train, X_test, y_train, y_test
 
 
 def cross_validate_pipeline(pipeline: Pipeline, X_train, y_train) -> dict:
