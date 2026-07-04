@@ -50,8 +50,32 @@ def print_report(pipeline: Pipeline, X_test, y_test) -> None:
 
 
 def plot_confusion_matrix(pipeline: Pipeline, X_test, y_test) -> None:
-    """Genera y muestra la matriz de confusión normalizada."""
-    raise NotImplementedError("Pendiente")
+    """
+    Genera y muestra la matriz de confusión normalizada por fila.
+
+    La normalización por fila (normalize='true') muestra la proporción
+    de predicciones correctas e incorrectas para cada clase real,
+    lo que facilita identificar qué clases el modelo confunde más.
+
+    Parameters
+    ----------
+    pipeline : Pipeline sklearn ya entrenado
+    X_test   : pd.DataFrame — features del conjunto de prueba
+    y_test   : pd.Series    — target real del conjunto de prueba
+    """
+    fig, ax = plt.subplots(figsize=(9, 7))
+    ConfusionMatrixDisplay.from_estimator(
+        pipeline, X_test, y_test,
+        display_labels=CLASS_LABELS,
+        normalize="true",
+        ax=ax,
+        colorbar=True,
+        cmap="Blues",
+    )
+    ax.set_title("Matriz de confusión normalizada")
+    plt.xticks(rotation=30, ha="right")
+    plt.tight_layout()
+    plt.show()
 
 
 def plot_roc_curves(pipeline: Pipeline, X_test, y_test) -> None:
