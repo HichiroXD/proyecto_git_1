@@ -12,6 +12,7 @@ Incluye:
 """
 
 import pandas as pd
+import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.pipeline import Pipeline
@@ -20,28 +21,47 @@ from sklearn.metrics import (
     confusion_matrix,
     ConfusionMatrixDisplay,
     roc_auc_score,
+    RocCurveDisplay,
 )
+from sklearn.preprocessing import label_binarize
 from src.config import CLASS_LABELS
 
 
 def print_report(pipeline: Pipeline, X_test, y_test) -> None:
-    """Imprime el classification report completo con métricas por clase."""
-    raise NotImplementedError("Implementar en feature/modeling")
+    """
+    Imprime el classification report completo con métricas por clase.
+
+    Reporta precision, recall y F1 para cada una de las 5 clases,
+    más los promedios macro y weighted. Se usa macro-F1 como métrica
+    principal por ser más robusta ante el desbalance de clases.
+
+    Parameters
+    ----------
+    pipeline : Pipeline sklearn ya entrenado
+    X_test   : pd.DataFrame — features del conjunto de prueba
+    y_test   : pd.Series    — target real del conjunto de prueba
+    """
+    y_pred = pipeline.predict(X_test)
+    print(classification_report(
+        y_test, y_pred,
+        target_names=CLASS_LABELS,
+        zero_division=0,
+    ))
 
 
 def plot_confusion_matrix(pipeline: Pipeline, X_test, y_test) -> None:
     """Genera y muestra la matriz de confusión normalizada."""
-    raise NotImplementedError("Implementar en feature/modeling")
+    raise NotImplementedError("Pendiente")
 
 
 def plot_roc_curves(pipeline: Pipeline, X_test, y_test) -> None:
     """Curvas ROC one-vs-rest para cada clase del modelo multiclase."""
-    raise NotImplementedError("Implementar en feature/modeling")
+    raise NotImplementedError("Pendiente")
 
 
 def plot_feature_importance(pipeline: Pipeline, top_n: int = 30) -> None:
     """Gráfico de barras con las top_n features del modelo final."""
-    raise NotImplementedError("Implementar en feature/modeling")
+    raise NotImplementedError("Pendiente")
 
 
 def compare_models(results: dict) -> pd.DataFrame:
@@ -53,4 +73,4 @@ def compare_models(results: dict) -> pd.DataFrame:
             "Random Forest": {"accuracy": 0.65, "macro_f1": 0.62, "auc_ovr": 0.83},
         }
     """
-    raise NotImplementedError("Implementar en feature/modeling")
+    raise NotImplementedError("Pendiente")
