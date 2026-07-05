@@ -28,7 +28,7 @@ THRESH_MIXED_LOW     = 0.40  # Límite inferior de Mixed
 MIN_REVIEWS_OVERWHELM = 500  # Reseñas mínimas para Overwhelmingly Positive
 
 # Número de clases del modelo (cambiar entre 3 y 4 para comparar)
-N_CLASSES = 4
+N_CLASSES = 3
 
 # Etiquetas para 4 clases (Negative / Mixed / Positive / Overwhelmingly Positive)
 CLASS_LABELS_4 = [
