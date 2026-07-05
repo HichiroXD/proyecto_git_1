@@ -31,10 +31,10 @@ THRESH_VERY_POSITIVE = 0.80   # Very Positive
 THRESH_MOSTLY        = 0.70   # Mostly Positive
 THRESH_MIXED_LOW     = 0.40   # Límite inferior de Mixed
 
-# Ajuste: MIN_REVIEWS_OVERWHELM sube de 500 a 1000 (más exigente)
+# Ajuste: MIN_REVIEWS_OVERWHELM y MIN_REVIEWS_VERY vuelven a sus valores originales para reflejar mejor la realidad del dataset.
 # y MIN_REVIEWS_VERY baja de 50 a 10 (más inclusivo para juegos indie)
-MIN_REVIEWS_OVERWHELM = 1000  # Reseñas mínimas para Overwhelmingly Positive (era 500)
-MIN_REVIEWS_VERY      = 10    # Reseñas mínimas para Very Positive (era 50)
+MIN_REVIEWS_OVERWHELM = 500  # Reseñas mínimas para Overwhelmingly Positive
+MIN_REVIEWS_VERY      = 50    # Reseñas mínimas para Very Positive
 # === FIN COMMIT HOTFIX ===
 
 # Etiquetas de las clases (en orden de menor a mayor éxito)
