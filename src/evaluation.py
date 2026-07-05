@@ -24,6 +24,8 @@ from sklearn.metrics import (
     RocCurveDisplay,
     roc_curve,
     auc,
+    f1_score,
+    accuracy_score,
 )
 from sklearn.preprocessing import label_binarize
 from src.config import CLASS_LABELS
@@ -154,13 +156,54 @@ def plot_feature_importance(pipeline: Pipeline, top_n: int = 30) -> None:
     plt.show()
 
 
-def compare_models(results: dict) -> pd.DataFrame:
+def compare_models(pipelines: dict, X_test, y_test) -> pd.DataFrame:
     """
-    Recibe un dict {nombre_modelo: métricas} y devuelve una tabla comparativa.
-    Ejemplo de entrada:
-        {
-            "Decision Tree": {"accuracy": 0.61, "macro_f1": 0.58, "auc_ovr": 0.79},
-            "Random Forest": {"accuracy": 0.65, "macro_f1": 0.62, "auc_ovr": 0.83},
-        }
+    Genera una tabla comparativa de métricas entre los modelos evaluados.
+
+    Para cada modelo calcula: accuracy, macro-F1, weighted-F1 y AUC macro-OvR.
+    Retorna un DataFrame ordenado por macro-F1 descendente.
+
+    Parameters
+    ----------
+    pipelines : dict — {nombre: pipeline_entrenado}
+    X_test    : pd.DataFrame — features del conjunto de prueba
+    y_test    : pd.Series    — target real del conjunto de prueba
+
+    Returns
+    -------
+    pd.DataFrame con una fila por modelo y columnas de métricas.
+
+    Ejemplo de uso:
+        results = compare_models(
+            {"Decision Tree": pipeline_dt, "Random Forest": pipeline_rf},
+            X_test, y_test
+        )
+        display(results)
     """
-    raise NotImplementedError("Pendiente")
+    rows = []
+    y_bin = label_binarize(y_test, classes=CLASS_LABELS)
+
+    for name, pipe in pipelines.items():
+        y_pred = pipe.predict(X_test)
+        y_prob = pipe.predict_proba(X_test)
+
+        auc_scores = []
+        for i in range(len(CLASS_LABELS)):
+            fpr, tpr, _ = roc_curve(y_bin[:, i], y_prob[:, i])
+            auc_scores.append(auc(fpr, tpr))
+
+        rows.append({
+            "Modelo": name,
+            "Accuracy": accuracy_score(y_test, y_pred),
+            "Macro F1": f1_score(y_test, y_pred, average="macro", zero_division=0),
+            "Weighted F1": f1_score(y_test, y_pred, average="weighted", zero_division=0),
+            "AUC macro-OvR": np.mean(auc_scores),
+        })
+
+    df_results = (
+        pd.DataFrame(rows)
+        .set_index("Modelo")
+        .sort_values("Macro F1", ascending=False)
+        .round(3)
+    )
+    return df_results
