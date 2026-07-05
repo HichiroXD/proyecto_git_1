@@ -122,8 +122,36 @@ def plot_roc_curves(pipeline: Pipeline, X_test, y_test) -> None:
 
 
 def plot_feature_importance(pipeline: Pipeline, top_n: int = 30) -> None:
-    """Gráfico de barras con las top_n features del modelo final."""
-    raise NotImplementedError("Pendiente")
+    """
+    Gráfico de barras horizontal con las top_n features más importantes
+    del modelo final según feature_importances_ del clasificador.
+
+    Solo funciona con modelos basados en árboles (Decision Tree,
+    Random Forest) que exponen el atributo feature_importances_.
+
+    Parameters
+    ----------
+    pipeline : Pipeline sklearn ya entrenado con CumulativeImportanceSelector
+    top_n    : int — número de features a mostrar (default: 30)
+    """
+    selector = pipeline.named_steps["selector"]
+    clf = pipeline.named_steps["clf"]
+
+    if not hasattr(clf, "feature_importances_"):
+        print("Este modelo no tiene feature_importances_")
+        return
+
+    importances = pd.Series(
+        clf.feature_importances_,
+        index=selector.selected_features_,
+    ).sort_values(ascending=False).head(top_n)
+
+    plt.figure(figsize=(9, 8))
+    sns.barplot(x=importances.values, y=importances.index, color="steelblue")
+    plt.title(f"Top {top_n} features — {type(clf).__name__}")
+    plt.xlabel("Importancia")
+    plt.tight_layout()
+    plt.show()
 
 
 def compare_models(results: dict) -> pd.DataFrame:
