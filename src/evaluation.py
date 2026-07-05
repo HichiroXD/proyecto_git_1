@@ -22,6 +22,8 @@ from sklearn.metrics import (
     ConfusionMatrixDisplay,
     roc_auc_score,
     RocCurveDisplay,
+    roc_curve,
+    auc,
 )
 from sklearn.preprocessing import label_binarize
 from src.config import CLASS_LABELS
@@ -79,8 +81,44 @@ def plot_confusion_matrix(pipeline: Pipeline, X_test, y_test) -> None:
 
 
 def plot_roc_curves(pipeline: Pipeline, X_test, y_test) -> None:
-    """Curvas ROC one-vs-rest para cada clase del modelo multiclase."""
-    raise NotImplementedError("Pendiente")
+    """
+    Curvas ROC one-vs-rest (OvR) para cada una de las 5 clases.
+
+    En clasificación multiclase no existe una única curva ROC — se genera
+    una por clase usando la estrategia One-vs-Rest: para cada clase, se
+    considera esa clase como positiva y el resto como negativas.
+    Se reporta el AUC macro-promedio como métrica de resumen.
+
+    Parameters
+    ----------
+    pipeline : Pipeline sklearn ya entrenado (debe tener predict_proba)
+    X_test   : pd.DataFrame — features del conjunto de prueba
+    y_test   : pd.Series    — target real del conjunto de prueba
+    """
+    y_prob = pipeline.predict_proba(X_test)
+    y_bin = label_binarize(y_test, classes=CLASS_LABELS)
+
+    fig, ax = plt.subplots(figsize=(9, 6))
+    colors = ["steelblue", "coral", "seagreen", "gold", "mediumpurple"]
+
+    auc_scores = []
+    for i, (label, color) in enumerate(zip(CLASS_LABELS, colors)):
+        fpr, tpr, _ = roc_curve(y_bin[:, i], y_prob[:, i])
+        auc_score = auc(fpr, tpr)
+        auc_scores.append(auc_score)
+        ax.plot(fpr, tpr, color=color, lw=1.5,
+                label=f"{label} (AUC = {auc_score:.3f})")
+
+    ax.plot([0, 1], [0, 1], "k--", lw=0.8, label="Azar")
+    ax.set_xlabel("False Positive Rate")
+    ax.set_ylabel("True Positive Rate")
+    ax.set_title("Curvas ROC one-vs-rest por clase")
+    ax.legend(loc="lower right", fontsize=8)
+    plt.tight_layout()
+    plt.show()
+
+    macro_auc = np.mean(auc_scores)
+    print(f"AUC macro-promedio: {macro_auc:.3f}")
 
 
 def plot_feature_importance(pipeline: Pipeline, top_n: int = 30) -> None:
