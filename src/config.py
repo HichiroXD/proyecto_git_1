@@ -19,32 +19,34 @@ FILE_TERENCICP_CATEGORIES = DATA_DATASETS_DIR / "t-games-categories.csv"
 FILE_TERENCICP_TAGS       = DATA_DATASETS_DIR / "t-games-tags.csv"
 FILE_FRONKONGAMES         = DATA_DATASETS_DIR / "games_fronkon.csv"
 
-# Se revisaron las distribuciones reales del dataset y se ajustaron
-# los umbrales para reflejar mejor las categorías oficiales de Steam.
-# El umbral de MIN_REVIEWS_VERY baja de 50 a 10 para no perder
-# juegos de nicho con pocas pero consistentes reseñas positivas.
+# Umbrales para la variable objetivo
+MIN_REVIEWS          = 10    # Reseñas mínimas para considerar un juego válido
+THRESH_OVERWHELM     = 0.95  # Overwhelmingly Positive
+THRESH_POSITIVE      = 0.70  # Positive (fusiona Mostly + Very Positive)
+THRESH_MIXED_LOW     = 0.40  # Límite inferior de Mixed
 
-# Umbrales para la variable objetivo multiclase
-MIN_REVIEWS          = 10     # Reseñas mínimas para considerar un juego válido
-THRESH_OVERWHELM     = 0.95   # Overwhelmingly Positive
-THRESH_VERY_POSITIVE = 0.80   # Very Positive
-THRESH_MOSTLY        = 0.70   # Mostly Positive
-THRESH_MIXED_LOW     = 0.40   # Límite inferior de Mixed
-
-# Ajuste: MIN_REVIEWS_OVERWHELM y MIN_REVIEWS_VERY vuelven a sus valores originales para reflejar mejor la realidad del dataset.
-# y MIN_REVIEWS_VERY baja de 50 a 10 (más inclusivo para juegos indie)
 MIN_REVIEWS_OVERWHELM = 500  # Reseñas mínimas para Overwhelmingly Positive
-MIN_REVIEWS_VERY      = 50    # Reseñas mínimas para Very Positive
-# === FIN COMMIT HOTFIX ===
 
-# Etiquetas de las clases (en orden de menor a mayor éxito)
-CLASS_LABELS = [
+# Número de clases del modelo (cambiar entre 3 y 4 para comparar)
+N_CLASSES = 4
+
+# Etiquetas para 4 clases (Negative / Mixed / Positive / Overwhelmingly Positive)
+CLASS_LABELS_4 = [
     "Negative",
     "Mixed",
-    "Mostly Positive",
-    "Very Positive",
+    "Positive",
     "Overwhelmingly Positive",
 ]
+
+# Etiquetas para 3 clases (Negative / Mixed / Positive)
+CLASS_LABELS_3 = [
+    "Negative",
+    "Mixed",
+    "Positive",
+]
+
+# Etiquetas activas según N_CLASSES
+CLASS_LABELS = CLASS_LABELS_4 if N_CLASSES == 4 else CLASS_LABELS_3
 
 # Parámetros del modelo
 TAG_FREQ_THRESHOLD   = 10    # Votos mínimos para conservar un tag

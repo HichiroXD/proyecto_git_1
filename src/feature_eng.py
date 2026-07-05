@@ -6,7 +6,7 @@ Limpieza, transformación y construcción de features para el modelo.
 Responsabilidades:
   - Exclusión de variables post-lanzamiento.
   - Filtro de calidad de la variable objetivo (reseñas mínimas).
-  - Construcción de la variable objetivo multiclase (5 niveles Steam).
+  - Construcción de la variable objetivo multiclase (3 0 4 niveles Steam).
   - One-Hot Encoding de géneros, categorías y tags.
   - Extracción de release_year desde release_date.
 """
@@ -15,20 +15,30 @@ import pandas as pd
 from src.config import (
     MIN_REVIEWS,
     THRESH_OVERWHELM,
-    THRESH_VERY_POSITIVE,
-    THRESH_MOSTLY,
+    THRESH_POSITIVE,
     THRESH_MIXED_LOW,
     MIN_REVIEWS_OVERWHELM,
-    MIN_REVIEWS_VERY,
     CLASS_LABELS,
+    N_CLASSES,
 )
 
 # Columnas post-lanzamiento que nunca se usan como features
 POST_LAUNCH_COLS = [
-    "Positive", "Negative", "Score rank", "User score",
-    "Recommendations", "Peak CCU",
-    "Average playtime forever", "Average playtime two weeks",
-    "Median playtime forever", "Median playtime two weeks",
+    "positive",
+    "negative",
+    "min_owners",
+    "max_owners",
+    "hltb_single",
+    "Positive",
+    "Negative",
+    "Score rank",
+    "User score",
+    "Recommendations",
+    "Peak CCU",
+    "Average playtime forever",
+    "Average playtime two weeks",
+    "Median playtime forever",
+    "Median playtime two weeks",
     "Estimated owners",
 ]
 
@@ -36,52 +46,50 @@ POST_LAUNCH_COLS = [
 def build_target(df: pd.DataFrame) -> pd.DataFrame:
     """
     Calcula positive_ratio y construye la variable objetivo multiclase
-    siguiendo las categorías oficiales de Steam.
+    siguiendo la lógica oficial de Steam, en 3 o 4 clases según N_CLASSES.
 
-    Clases (de menor a mayor éxito):
-        0 - Negative            (ratio < 40%)
-        1 - Mixed               (40% ≤ ratio < 70%)
-        2 - Mostly Positive     (70% ≤ ratio < 80%)
-        3 - Very Positive       (≥ 80% y ≥ MIN_REVIEWS_VERY reseñas)
-        4 - Overwhelmingly Positive (≥ 95% y ≥ MIN_REVIEWS_OVERWHELM reseñas)
+    4 clases:
+        Negative            (ratio < 40%)
+        Mixed               (40% ≤ ratio < 70%)
+        Positive            (70% ≤ ratio < 95% o < 500 reseñas)
+        Overwhelmingly Positive (≥ 95% y ≥ 500 reseñas)
 
-    Parameters
-    ----------
-    df : pd.DataFrame
-        Dataset con columnas 'positive' y 'negative' (tras filter_min_reviews).
-
-    Returns
-    -------
-    pd.DataFrame con columnas adicionales: 'positive_ratio' y 'success_level'.
+    3 clases (fusiona Overwhelmingly Positive con Positive):
+        Negative            (ratio < 40%)
+        Mixed               (40% ≤ ratio < 70%)
+        Positive            (≥ 70%)
     """
     df = df.copy()
     df["positive_ratio"] = df["positive"] / (df["positive"] + df["negative"])
 
-    def classify(row: pd.Series) -> str:
+    def classify_4(row: pd.Series) -> str:
         ratio = row["positive_ratio"]
         total = row["total_reviews"]
-
         if ratio >= THRESH_OVERWHELM and total >= MIN_REVIEWS_OVERWHELM:
             return "Overwhelmingly Positive"
-        elif ratio >= THRESH_VERY_POSITIVE and total >= MIN_REVIEWS_VERY:
-            return "Very Positive"
-        elif ratio >= THRESH_MOSTLY:
-            return "Mostly Positive"
+        elif ratio >= THRESH_POSITIVE:
+            return "Positive"
         elif ratio >= THRESH_MIXED_LOW:
             return "Mixed"
         else:
             return "Negative"
 
-    df["success_level"] = df.apply(classify, axis=1)
+    def classify_3(row: pd.Series) -> str:
+        ratio = row["positive_ratio"]
+        if ratio >= THRESH_POSITIVE:
+            return "Positive"
+        elif ratio >= THRESH_MIXED_LOW:
+            return "Mixed"
+        else:
+            return "Negative"
 
-    # Convertir a categórica ordenada para que los modelos respeten el orden
+    classify_fn = classify_4 if N_CLASSES == 4 else classify_3
+    df["success_level"] = df.apply(classify_fn, axis=1)
     df["success_level"] = pd.Categorical(
-        df["success_level"],
-        categories=CLASS_LABELS,
-        ordered=True,
+        df["success_level"], categories=CLASS_LABELS, ordered=True
     )
 
-    print("build_target: distribución de clases:")
+    print(f"build_target ({N_CLASSES} clases): distribución:")
     print(df["success_level"].value_counts().sort_index())
     return df
 
