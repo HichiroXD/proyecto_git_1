@@ -106,6 +106,7 @@ def build_pipeline_dt() -> Pipeline:
             min_samples_split=RF_MIN_SAMPLES_SPLIT,
             min_samples_leaf=RF_MIN_SAMPLES_LEAF,
             random_state=RANDOM_STATE,
+            class_weight="balanced",
         )),
     ])
 
@@ -131,6 +132,7 @@ def build_pipeline_rf() -> Pipeline:
             min_samples_leaf=RF_MIN_SAMPLES_LEAF,
             random_state=RANDOM_STATE,
             n_jobs=-1,
+            class_weight="balanced",
         )),
     ])
 
