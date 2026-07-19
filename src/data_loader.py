@@ -201,9 +201,17 @@ def load_all() -> pd.DataFrame:
     -------
     pd.DataFrame con ~61.000 juegos y todas las columnas integradas.
     """
-    df_games, df_categories, df_tags = load_terencicp()
-    df_fronkon = load_fronkongames()
-    return merge_datasets(df_games, df_categories, df_tags, df_fronkon)
+    try:
+        validate_dataset_files()
+
+        df_games, df_categories, df_tags = load_terencicp()
+        df_fronkon = load_fronkongames()
+
+        return merge_datasets(df_games, df_categories, df_tags, df_fronkon)
+    
+    except FileNotFoundError as e:
+        print(e)
+        return pd.DataFrame()
 
 
 def get_merge_stats(df: pd.DataFrame) -> dict:
