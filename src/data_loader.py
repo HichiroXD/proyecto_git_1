@@ -56,7 +56,7 @@ def validate_dataset_files():
     for dataset, path in dataset_paths.items():
         if not Path(path).exists():
             raise FileNotFoundError(
-                f"No se encontró el dataset '{dataset}' en la ruta '{path}."
+                f"No se encontró el dataset '{dataset}' en la ruta '{path}'."
             )
 
 
