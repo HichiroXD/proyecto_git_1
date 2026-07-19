@@ -56,7 +56,7 @@ def validate_dataset_files():
     for dataset, path in dataset_paths.items():
         if not Path(path).exists():
             raise FileNotFoundError(
-                f"No se encontró el dataset '{dataset}'."
+                f"No se encontró el dataset '{dataset}' en la ruta '{path}."
             )
 
 
@@ -201,17 +201,14 @@ def load_all() -> pd.DataFrame:
     -------
     pd.DataFrame con ~61.000 juegos y todas las columnas integradas.
     """
-    try:
-        validate_dataset_files()
 
-        df_games, df_categories, df_tags = load_terencicp()
-        df_fronkon = load_fronkongames()
+    validate_dataset_files()
 
-        return merge_datasets(df_games, df_categories, df_tags, df_fronkon)
-    
-    except FileNotFoundError as e:
-        print(e)
-        return pd.DataFrame()
+    df_games, df_categories, df_tags = load_terencicp()
+    df_fronkon = load_fronkongames()
+
+    return merge_datasets(df_games, df_categories, df_tags, df_fronkon)
+
 
 
 def get_merge_stats(df: pd.DataFrame) -> dict:
