@@ -98,14 +98,15 @@ Se usa `class_weight='balanced'` en ambos modelos para compensar el desbalance i
 
 ## Metodología
 
-1. Carga y merge de los dos datasets por `AppID`
-2. Análisis exploratorio de datos (EDA): precios, lanzamientos por año, distribución de clases, plataformas
-3. Limpieza y feature engineering: filtro de reseñas mínimas, construcción del target multiclase, One-Hot Encoding de categorías, tags y géneros
-4. Selección de variables mediante importancia acumulada (umbral: 90%)
-5. División train/test estratificada (80/20)
-6. Entrenamiento con Pipeline (CumulativeImportanceSelector + clasificador)
-7. Validación cruzada estratificada 5-fold (métrica: Macro F1)
-8. Evaluación en test set con métricas multiclase (classification report, matrices de confusión, curvas ROC one-vs-rest)
+1. Validación de existencia de los dataset antes de la carga
+2. Carga y merge de los dos datasets por `AppID`
+3. Análisis exploratorio de datos (EDA): precios, lanzamientos por año, distribución de clases, plataformas
+4. Limpieza y feature engineering: filtro de reseñas mínimas, construcción del target multiclase, One-Hot Encoding de categorías, tags y géneros
+5. Selección de variables mediante importancia acumulada (umbral: 90%)
+6. División train/test estratificada (80/20)
+7. Entrenamiento con Pipeline (CumulativeImportanceSelector + clasificador)
+8. Validación cruzada estratificada 5-fold (métrica: Macro F1)
+9. Evaluación en test set con métricas multiclase (classification report, matrices de confusión, curvas ROC one-vs-rest)
 
 ---
 
