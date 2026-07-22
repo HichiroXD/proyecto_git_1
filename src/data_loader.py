@@ -10,7 +10,12 @@ con columnas faltantes: Developers, Publishers, Genres, Windows/Mac/Linux,
 Supported languages, Achievements y Metacritic score.
 """
 
+
 import pandas as pd
+
+##Cambio 1
+from pathlib import Path
+
 from src.config import (
     FILE_TERENCICP_GAMES,
     FILE_TERENCICP_CATEGORIES,
@@ -34,6 +39,25 @@ FRONKON_COLS_MERGE = [
     "Metacritic score",
     "Required age",
 ]
+
+#Cambio 2
+def validate_dataset_files():
+    """
+    Verifica que todos los datasets requeridos existan antes de cargarlos.
+    """
+
+    dataset_paths = {
+        "games_terencicp": FILE_TERENCICP_GAMES,
+        "categories_terencicp": FILE_TERENCICP_CATEGORIES,
+        "tags_terencicp": FILE_TERENCICP_TAGS,
+        "games_fronkongames": FILE_FRONKONGAMES,
+    }
+
+    for dataset, path in dataset_paths.items():
+        if not Path(path).exists():
+            raise FileNotFoundError(
+                f"No se encontró el dataset '{dataset}' en la ruta '{path}'."
+            )
 
 
 def load_terencicp() -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
@@ -177,9 +201,14 @@ def load_all() -> pd.DataFrame:
     -------
     pd.DataFrame con ~61.000 juegos y todas las columnas integradas.
     """
+
+    validate_dataset_files()
+
     df_games, df_categories, df_tags = load_terencicp()
     df_fronkon = load_fronkongames()
+
     return merge_datasets(df_games, df_categories, df_tags, df_fronkon)
+
 
 
 def get_merge_stats(df: pd.DataFrame) -> dict:
